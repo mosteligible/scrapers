@@ -5,8 +5,7 @@ as csv or any required format.
 import pandas as pd
 import json
 import os
-from utils import SegmentData
-from tqdm import tqdm
+from utils import AnAdvertisement
 
 
 # LONG TERM RENTALS
@@ -39,7 +38,7 @@ def initialize_dataframe():
     transformed into a csv or structured format.
     In this functino we create a dataframe with columns with names given below.
 
-    utils.py files has a SegmentData class that will take in each dictionary
+    utils.py files has a AnAdvertisement class that will take in each dictionary
     from json file which will be used to get relevant details from a dictionary
 
     It returns nothing but will save the structured data and a counter file
@@ -94,11 +93,11 @@ def initialize_dataframe():
 
     files = os.listdir("./longtermRentals_json")[-1:]  # files=os.listdir(f'{DATA}')
     indx = 0
-    for a_file in tqdm(files, position=0):
+    for a_file in files:
         if a_file.endswith(".json"):
             data = read_file(f"{DATA}/{a_file}")
             for a_datapoint in data:
-                segmented_data = SegmentData(a_datapoint)
+                segmented_data = AnAdvertisement(a_datapoint)
 
                 df.loc[indx, "adId"] = segmented_data.get_adid()
                 df.loc[indx, "description"] = segmented_data.get_description()
@@ -147,8 +146,8 @@ def add_data(files_to_do):
         with open(f"{DATA}/{a_file}", "r") as f:
             data = json.load(f)
         print(f"\nWorking with data in {a_file}\n")
-        for a_datapoint in tqdm(data, position=0):
-            segmented_data = SegmentData(a_datapoint)
+        for a_datapoint in data:
+            segmented_data = AnAdvertisement(a_datapoint)
 
             if segmented_data.get_adid() not in adIds:
                 df.loc[indx, "adId"] = segmented_data.get_adid()

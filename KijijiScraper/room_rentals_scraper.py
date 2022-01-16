@@ -1,7 +1,6 @@
 import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 import json
 from string import punctuation
 from nltk import word_tokenize

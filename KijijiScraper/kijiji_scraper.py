@@ -1,7 +1,6 @@
 import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
-from tqdm import tqdm
 import json
 from string import punctuation
 from nltk import word_tokenize
@@ -111,7 +110,7 @@ def get_page_data(url: str) -> list:
     regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
     broken_url = urlparse(url)
     # print("\nCollecting information from main page!..\n")
-    for a_posting in tqdm(regular_postings, position=0):
+    for a_posting in regular_postings:
         href = a_posting.find("a", {"class": "title"}).get(
             "href"
         )  # , a_posting.find('div',{'class':'price'}).text.strip()

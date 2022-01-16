@@ -1,6 +1,5 @@
 import json
 import spacy
-from tqdm import tqdm
 from nltk import word_tokenize
 from string import punctuation
 from random import sample
@@ -11,7 +10,6 @@ FILENAME = "data.json"
 def read_file():
     with open(FILENAME, "r") as f:
         data = json.load(f)
-
     return data
 
 
@@ -19,7 +17,7 @@ def collect_descriptions(all_advertisements):
     nlp = spacy.load("en_core_web_sm")
     descriptions = []
 
-    for an_advertisement in tqdm(all_advertisements, position=0):
+    for an_advertisement in all_advertisements:
         buffer = {}
         buffer["adId"] = an_advertisement["adId"]
         to_lemmatize = " ".join(

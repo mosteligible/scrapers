@@ -2,7 +2,6 @@ import spacy
 from nltk import word_tokenize
 import pandas as pd
 from string import punctuation
-from tqdm import tqdm
 
 
 FILENAME = "./room_rentals_data_Accumulated/Advertisement_structured.csv"
@@ -41,7 +40,7 @@ def main(df):
 
     furnished = []
     laundry = []
-    for a_description in tqdm(descriptions, position=0):
+    for a_description in descriptions:
         description = preprocess_description(a_description)
         furn, laund = is_furnished(description)
         laundry.append(laund)

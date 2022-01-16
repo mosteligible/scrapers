@@ -2,57 +2,11 @@ import requests
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import json
-import time
+from datetime import datetime
 from utils import KijijiScraper_AnAdvertisement
-import random
+import time
 
-
-"""
-def preprocess_description(description) -> str:
-    nlp = spacy.load('en_core_web_sm')
-    description = ' '.join([i.lower() for i in word_tokenize(description) if (i not in punctuation and i != 'br')])
-    description = nlp(description)
-    description = ([word.lemma_ for word in description])
-    return description
-
-
-def is_utility_included(description: str) -> bool:
-    keywords = [#'heat',
-                'hydro',
-                #'wifi',
-                #'ac',
-                'utilities',
-                'utility',
-                #'water',
-                #'parking',
-                'free',
-                'include',
-                'included',
-                ]
-    ceiling=len(description)
-    count=0
-    counted_descriptions = 0
-    for indx, word in enumerate(description):
-        top=ceiling if indx+5>=ceiling else indx+5
-        bottom=0 if indx-5<0 else indx-5
-
-        sliced = description[bottom:top]
-        bool_in_slice = ("free" in sliced and "utility" in sliced) or ("include" in sliced and 'utility' in sliced) or ('hydro' in sliced and 'include' in sliced) or ('unlimited' in sliced and 'hydro' in sliced) or ('inclusive' in sliced and 'utility' in sliced)
-        if word in keywords:
-            #print(f'{i} : {a_description[bottom:top]}, {bool_in_slice}')
-            counted_descriptions+=1
-            if bool_in_slice:
-                count+=1
-    try:
-        avg= count/counted_descriptions
-        if avg >= 0.5:
-            return True
-        else:
-            return False
-    except ZeroDivisionError:
-        print(f'\nZero division error')
-        return False
-"""
+# import random
 
 
 def get_proxies():
@@ -90,47 +44,24 @@ def advertisement_details(url: str) -> dict:
     advertisementData["rent"] = a_scraped_ad.get_rent()
     advertisementData["description"] = a_scraped_ad.get_description()
     advertisementData["location"] = a_scraped_ad.get_location()
-    # description = preprocess_description(advertisementData['description'])
-    # advertisementData['utility'] = is_utility_included(description)
     advertisementData["adAttributes"] = a_scraped_ad.get_adAttributes()
-    #    for an_attribute in adAttributes:
-    #        key = an_attribute['localeSpecificValues']['en']['label']
-    #        advertisementData[key] = an_attribute['localeSpecificValues']['en']['value']
-
     return adId, advertisementData
 
 
 def get_page_data(url: str) -> list:
-    """
-    This function takes in a response object and extracts the links to all the
-    advertisement in the page, stores them in a list and returns it.
-    For example, if there are 15 advertisement in current page, link to them
-    will be stored in a list.
-
-    This link will be used to scrape detailed information about those collected
-    pages.
-    """
     response = requests.get(url)
     soup = BeautifulSoup(response.content, features="lxml")
     ad_data = []
-    # proxies = get_proxies()
+    # proxies = get_proxies()  # need a reliable list
     regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
     broken_url = urlparse(url)
-    # print("\nCollecting information from main page!..\n")
     for a_posting in regular_postings:
         time.sleep(1.5)
-        href = a_posting.find("a", {"class": "title"}).get(
-            "href"
-        )  # , a_posting.find('div',{'class':'price'}).text.strip()
-        # break url into different parts
-        # this is necessary because subsequent search requires to add the netloc
-        # with main advertisement posts
+        href = a_posting.find("a", {"class": "title"}).get("href")
         new_posting = broken_url.scheme + "://" + broken_url.netloc + href
         # proxy = random.choice(proxies)
         an_ad = {}
-
-        data_returned = advertisement_details(new_posting)  # , proxy)
-
+        data_returned = advertisement_details(new_posting)
         if data_returned == "data could not be read!":
             continue
         else:
@@ -156,9 +87,6 @@ def main():
     url = f"https://www.kijiji.ca/b-location-court-terme/ville-de-montreal/page-{current_page_no}/c42l1700281?radius=5.0&address=1360+Ren%C3%A9-L%C3%A9vesque+Boulevard+West%2C+Montr%C3%A9al%2C+QC&ll=45.495802,-73.572627"
 
     flag = True
-
-    # get the number of pages search result is spread in
-    # all_page_numbers = get_page_numbers(url)
     print(f"*****COLLECTING FROM {current_page_no}*********")
     # store the results in a dictionary, based on the number of pages
     all_results = []
@@ -168,10 +96,8 @@ def main():
     del previous_page_data
     print("******************DONE*************************\n\n")
 
-    today_localtime = time.localtime()
-    today_date = (
-        f"{today_localtime.tm_year}-{today_localtime.tm_mon}-{today_localtime.tm_mday}"
-    )
+    today_localtime = datetime.now()
+    today_date = today_localtime.strftime("%Y-%m-%d")
 
     while flag:
         # set url to update for each iteration
