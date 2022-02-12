@@ -3,10 +3,11 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 import json
 from datetime import datetime
-from utils import KijijiScraper_AnAdvertisement
+from config import CRAWL_DELAY, LONGTERM_JSON_PATH, get_workdir
+from data_models import KijijiScraper_AnAdvertisement
 import time
 
-# import random
+# import random  # To use with proxies
 
 
 def get_proxies():
@@ -56,7 +57,7 @@ def get_page_data(url: str) -> list:
     regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
     broken_url = urlparse(url)
     for a_posting in regular_postings:
-        time.sleep(1.5)
+        time.sleep(CRAWL_DELAY)
         href = a_posting.find("a", {"class": "title"}).get("href")
         new_posting = broken_url.scheme + "://" + broken_url.netloc + href
         # proxy = random.choice(proxies)
@@ -75,16 +76,13 @@ def are_two_equal(a, b):
     return a == b
 
 
-def main():
+def longterm_main(url_prefix: str, url_suffix: str):
     # select page number 1
+    print("initiating Longterm Scrapes")
     current_page_no = 1
-
     # set url for page 1 of search
     # LONG TERM RENTALS
-    # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-    # url=f'https://www.kijiji.ca/b-appartement-condo/ville-de-montreal/page-{current_page_no}/c37l1700281?radius=5.0&ad=offering&address=1360+Ren%C3%A9-L%C3%A9vesque+Boulevard+West%2C+Montr%C3%A9al%2C+QC&ll=45.495802,-73.572627'
-    # url= f'https://www.kijiji.ca/b-location-court-terme/ville-de-montreal/page-{current_page_no}/c42l1700281?radius=5.0&ad=offering&price=304__1200&address=Montr%C3%A9al%2C+QC&ll=45.501689,-73.567256'
-    url = f"https://www.kijiji.ca/b-location-court-terme/ville-de-montreal/page-{current_page_no}/c42l1700281?radius=5.0&address=1360+Ren%C3%A9-L%C3%A9vesque+Boulevard+West%2C+Montr%C3%A9al%2C+QC&ll=45.495802,-73.572627"
+    url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
 
     flag = True
     print(f"*****COLLECTING FROM {current_page_no}*********")
@@ -103,7 +101,7 @@ def main():
         # set url to update for each iteration
         current_page_no += 1
         # LONG TERM RENTALS
-        url = f"https://www.kijiji.ca/b-appartement-condo/ville-de-montreal/page-{current_page_no}/c37l1700281?radius=5.0&ad=offering&address=1360+Ren%C3%A9-L%C3%A9vesque+Boulevard+West%2C+Montr%C3%A9al%2C+QC&ll=45.495802,-73.572627"
+        url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
 
         print(f"*****COLLECTING FROM {current_page_no}*********")
         print(url)
@@ -119,7 +117,7 @@ def main():
         all_results.extend(page_data)
         previous_page_id = current_page_ids.copy()
 
-        filename = "./longtermRentals_json/" + today_date + f" page-{current_page_no}.json"
+        filename = WORKDIR / f" page-{current_page_no}.json"
         with open(filename, "w") as f:
             json.dump(page_data, f, indent=4)
 
@@ -131,20 +129,14 @@ def main():
 if __name__ == "__main__":
     # LONG TERM RENTALS
     COUNTERSTR = "./longtermRentals_json/counter.txt"
+    WORKDIR = get_workdir()
     try:
         with open(COUNTERSTR, "r") as f_counter:
             counter = int(f_counter.readline())
     except FileNotFoundError:
         print("This is the first time we are scraping this page!")
         counter = 0
-    result = main()
-
-    # SHORT TERM RENTALS
-    # jsonFileName=f'./short_term_rentals_data_json/data{counter+1}.json'
-
-    # LONG TERM RENTALS
-    # jsonFileName=f'./data/data{counter+1}.json'
-
+    result = longterm_main()
     # ROOM RENTALS AND ROOMMATES
     jsonFileName = f"./longtermRentals_json/data{counter+1}.json"
 

@@ -5,7 +5,7 @@ import json
 from string import punctuation
 from nltk import word_tokenize
 import spacy
-from utils import KijijiScraper_AnAdvertisement
+from data_models import KijijiScraper_AnAdvertisement
 from sys import getsizeof
 
 

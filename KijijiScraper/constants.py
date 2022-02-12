@@ -50,3 +50,5 @@ USER_AGENTS = [
 ]
 
 USER_AGENT = choice(USER_AGENTS)
+
+TIMESTAMP_FORMAT = "%Y%m%d-%H%M"

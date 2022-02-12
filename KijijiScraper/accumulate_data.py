@@ -5,7 +5,7 @@ as csv or any required format.
 import pandas as pd
 import json
 import os
-from utils import AnAdvertisement
+from data_models import AnAdvertisement
 
 
 # LONG TERM RENTALS

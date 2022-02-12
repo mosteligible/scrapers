@@ -5,7 +5,7 @@ import json
 from string import punctuation
 from nltk import word_tokenize
 import spacy
-from utils import KijijiScraper_AnAdvertisement
+from data_models import KijijiScraper_AnAdvertisement
 from sys import getsizeof
 
 
@@ -76,10 +76,7 @@ def advertisement_details(url: str) -> dict:
     advertisementData["rent"] = a_scraped_ad.get_rent()
     advertisementData["description"] = a_scraped_ad.get_description()
     advertisementData["location"] = a_scraped_ad.get_location()
-    description = preprocess_description(advertisementData["description"])
-    advertisementData["utility"], advertisementData["laundry"] = is_utility_included(
-        description
-    )
+    description = advertisementData["description"]
     adAttributes = a_scraped_ad.get_adAttributes()
     for an_attribute in adAttributes:
         key = an_attribute["localeSpecificValues"]["en"]["label"]
@@ -128,14 +125,6 @@ def are_two_equal(a, b):
 def main():
     # select page number 1
     current_page_no = 1
-
-    # set url for page 1 of search
-    # LONG TERM RENTALS
-    # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
-    # SHORT TERM RENTALS
-    # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
     # ROOM RENTALS AND ROOMMATES
     url = f"https://www.kijiji.ca/b-room-rental-roommate/ottawa/page-{current_page_no}/c36l1700185"
     flag = True
@@ -153,12 +142,6 @@ def main():
     while flag:
         # set url to update for each iteration
         current_page_no += 1
-        # LONG TERM RENTALS
-        # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
-        # SHORT TERM RENTALS
-        # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
         # ROOM RENTALS AND ROOMMATES
         url = f"https://www.kijiji.ca/b-room-rental-roommate/ottawa/page-{current_page_no}/c36l1700185"
         print(f"*****COLLECTING FROM {current_page_no}*********")
@@ -175,14 +158,6 @@ def main():
 def main():
     # select page number 1
     current_page_no = 1
-
-    # set url for page 1 of search
-    # LONG TERM RENTALS
-    # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
-    # SHORT TERM RENTALS
-    # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
     # ROOM RENTALS AND ROOMMATES
     url = f"https://www.kijiji.ca/b-room-rental-roommate/ottawa/page-{current_page_no}/c36l1700185"
     flag = True
@@ -200,12 +175,6 @@ def main():
     while flag:
         # set url to update for each iteration
         current_page_no += 1
-        # LONG TERM RENTALS
-        # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
-        # SHORT TERM RENTALS
-        # url=f'https://www.kijiji.ca/b-short-term-rental/ottawa/page-{current_page_no}/c42l1700185'
-
         # ROOM RENTALS AND ROOMMATES
         url = f"https://www.kijiji.ca/b-room-rental-roommate/ottawa/page-{current_page_no}/c36l1700185"
 
@@ -242,12 +211,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # SHORT TERM RENTALS
-    # counter_str='./short_term_rentals_data_json/counter.txt'
-
-    # LONG TERM RENTALS
-    # counter_str='./data/counter.txt'
-
     # ROOM RENTALS AND ROOMMATES
     COUNTERSTR = "./room_rentals_data_json/counter.txt"
     try:
@@ -263,12 +226,6 @@ if __name__ == "__main__":
             counter = int(f_counter.readline())
     except:
         pass
-    # SHORT TERM RENTALS
-    # jsonFileName=f'./short_term_rentals_data_json/data{counter+1}.json'
-
-    # LONG TERM RENTALS
-    # jsonFileName=f'./data/data{counter+1}.json'
-
     # ROOM RENTALS AND ROOMMATES
     jsonFileName = f"./room_rentals_data_json/data{counter+1}.json"
 

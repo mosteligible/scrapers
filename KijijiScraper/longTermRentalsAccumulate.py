@@ -5,7 +5,7 @@ as csv or any required format.
 import pandas as pd
 import json
 import os
-from utils import AnAdvertisement
+from data_models import AnAdvertisement
 
 
 # LONG TERM RENTALS
@@ -85,7 +85,6 @@ def initialize_dataframe():
     df = pd.DataFrame(columns=column_names)
 
     files = os.listdir(f"{DATA}")
-    #    datas=[]
     indx = 0
     with open(f"{ACCUMULATED_DATA_LOCATION}/counter.txt", "w") as f:
         f.write("")
