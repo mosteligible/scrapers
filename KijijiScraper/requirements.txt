@@ -3,3 +3,4 @@ requests
 pandas
 lxml
 python-dotenv
+pre-commit
