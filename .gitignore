@@ -131,3 +131,7 @@ dmypy.json
 
 # Misc
 .vscode/
+longterm_json/
+longterm_structures/
+adextract_logs
+downloads_log

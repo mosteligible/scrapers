@@ -6,7 +6,6 @@ from utils import format_string
 def run(url):
     url_prefix, url_suffix = format_string(url)
     longterm_main(url_prefix, url_suffix)
-    pass
 
 
 if __name__ == "__main__":

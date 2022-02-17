@@ -1,6 +1,7 @@
-bs4
-requests
-pandas
-lxml
-python-dotenv
-pre-commit
+bs4==0.0.1
+requests==2.27.1
+pandas==1.4.1
+lxml==4.7.1
+python-dotenv==0.19.2
+pre-commit==2.17.0
+mysql-connector-python==8.0.28

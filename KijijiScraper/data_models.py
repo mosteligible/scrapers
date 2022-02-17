@@ -1,78 +1,83 @@
-import requests
-from bs4 import BeautifulSoup
-from constants import USER_AGENT
 import json
-from random import choice
+from bs4 import BeautifulSoup
+from constants import COLUMN_NAMES, USER_AGENT
+from utils import collect_response
 
 
 class AnAdvertisement(object):
     def __init__(self, datapoint: dict):
-        self.__adId = datapoint["adId"]
-        self.__data = datapoint["data"]
-        self.__collect_information()
+        self.adId = datapoint["adId"]
+        self.__collect_information(datapoint["data"])
 
-    def __collect_information(self):
+    def __collect_information(self, ad_data):
         nan = float("nan")
         try:
-            self.__url = self.__data["url"]
+            self.url = ad_data["url"]
         except:
-            self.__url = nan
+            pass
         try:
-            self.__rent = self.__data["rent"]["amount"] / 100
+            self.rent = ad_data["rent"]["amount"] / 100
         except:
-            self.__rent = nan
+            pass
         try:
-            self.__description = self.__data["description"]
+            self.description = ad_data["description"][:1000]
         except:
-            self.__description = nan
+            pass
         try:
-            self.__latitude = self.__data["location"]["latitude"]
+            self.latitude = ad_data["location"]["latitude"]
         except:
-            self.__latitude = nan
+            pass
         try:
-            self.__longitude = self.__data["location"]["longitude"]
+            self.longitude = ad_data["location"]["longitude"]
         except:
-            self.__longitude = nan
+            pass
         try:
-            self.__address = self.__data["location"]["mapAddress"]
+            self.address = ad_data["location"]["mapAddress"]
         except:
-            self.__address = nan
+            pass
         try:
-            self.__province = self.__data["location"]["province"]
+            self.province = ad_data["location"]["province"]
         except:
-            self.__province = nan
+            pass
         try:
-            self.__utilities = self.__data["utility"]
+            self.utilities = ad_data["utility"]
         except:
-            self.__utilities = nan
+            pass
         try:
-            self.__bedrooms = self.__data["Bedrooms"]
+            self.Bedrooms = ad_data["Bedrooms"]
         except:
-            self.__bedrooms = nan
+            pass
         try:
-            self.__bathrooms = self.__data["Bathrooms"]
+            self.Bathrooms = ad_data["Bathrooms"]
         except:
-            self.__bathrooms = nan
+            pass
         try:
-            self.__furnished = self.__data["Furnished"]
+            self.furnished = ad_data["Furnished"]
         except:
-            self.__furnished = nan
+            pass
         try:
-            self.__rentedBy = self.__data["For Rent By"]
+            self.__dict__["For Rent By"] = ad_data["For Rent By"]
         except:
-            self.__rentedBy = nan
+            pass
         try:
-            self.__petFriendly = self.__data["Pet Friendly"]
+            self.__dict__["Pet Friendly"] = ad_data["Pet Friendly"]
         except:
-            self.__petFriendly = nan
+            pass
         try:
-            self.__laundry = self.__data["laundry"]
+            self.laundry = ad_data["laundry"]
         except:
-            self.__laundry = nan
+            pass
         try:
-            self.__adAttributes = self.__data["adAttributes"]
+            adattrs = ad_data["adAttributes"]
+            try:
+                for an_attribute in adattrs:
+                    key = an_attribute["localeSpecificValues"]["en"]["label"]
+                    if key in COLUMN_NAMES:
+                        self.__dict__[key] = an_attribute["localeSpecificValues"]["en"]["value"]
+            except KeyError:
+                pass  # key adAttributes was not found
         except:
-            self.__adAttributes = nan
+            pass
 
     def __str__(self):
         return (
@@ -82,63 +87,11 @@ class AnAdvertisement(object):
     def get_json(cls):
         return cls.__dict__
 
-    def get_adid(self):
-        return self.__adId
-
-    def get_url(self):
-        return self.__url
-
-    def is_utilities_included(self):
-        return self.__utilities
-
-    def is_pet_friendly(self):
-        return self.__petFriendly
-
-    def get_rent(self):
-        return self.__rent
-
-    def get_description(self):
-        return self.__description
-
-    def get_latitude(self):
-        return self.__latitude
-
-    def get_longiutde(self):
-        return self.__longitude
-
-    def get_address(self):
-        return self.__address
-
-    def get_province(self):
-        return self.__province
-
-    def get_numBedrooms(self):
-        return self.__bedrooms
-
-    def get_numBathrooms(self):
-        return self.__bathrooms
-
-    def isFurnished(self):
-        return self.__furnished
-
-    def who_is_renting(self):
-        return self.__rentedBy
-
-    def get_laundry(self):
-        return self.__laundry
-
-    def get_adAttributes(self):
-        return self.__adAttributes
-
 
 class KijijiScraper_AnAdvertisement(object):
-    def __init__(self, url: str):  # , proxy):
-        self.__url = url
-
-        self.__response = requests.get(self.__url, headers=USER_AGENT)
+    def __init__(self, soup: BeautifulSoup):
         self.__data = (
-            BeautifulSoup(self.__response.content, "lxml")
-            .find("div", {"id": "FesLoader"})
+            soup.find("div", {"id": "FesLoader"})
             .contents[1]
         )
         self.__data = json.loads(str(self.__data)[31 + 14 : -10])
@@ -148,7 +101,7 @@ class KijijiScraper_AnAdvertisement(object):
         try:
             return self.__data["config"]["VIP"]["adId"]
         except:
-            return None
+            return self.__nan
 
     def get_adType(self):
         try:
