@@ -1,10 +1,11 @@
-from distutils.log import error
+from typing import List
 import requests
+import mysql.connector
+from config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
 from Handlers.Database import DatabaseCtx
-from config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME
 from log import LOGGER
-from pathlib import Path
 from urllib.parse import urlparse
+from ScrapeModels import AnAdvertisement
 
 
 def format_string(url: str):
@@ -16,14 +17,6 @@ def format_string(url: str):
     url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}{prefix}"
     url_suffix = f"{suffix}?{parsed_url.query}"
     return url_prefix, url_suffix
-
-
-def flatten_json(ads: dict) -> dict:
-    # Validate the schema of json body
-    # Then add Null to those keys that haven't been found
-    # return flattened dictionary
-    
-    return {}
 
 
 def get_database_connection() -> DatabaseCtx:
@@ -49,3 +42,15 @@ def collect_response(url: str) -> requests.models.Response:
             LOGGER.error(f"{e} on {retries+1} tries requesting url:: {url}")
             retries += 1
     return response
+
+
+def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
+    for ad_data in page_data:
+        an_advertisement = AnAdvertisement(ad_data)
+        if not db_op.is_connected():
+            db_op.reconnect(database=DB_NAME)
+        try:
+            db_op.add_entry(advertisement=an_advertisement.get_json(),
+                            table_name=TABLE_NAME)
+        except mysql.connector.errors.IntegrityError:
+            LOGGER.error(f"adId: {ad_data['adId']} - Duplicate ad encountered")

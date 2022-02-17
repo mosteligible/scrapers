@@ -1,11 +1,11 @@
+import utils
+import ScrapeModels
 import time
 import threading
 from bs4 import BeautifulSoup
-from config import CRAWL_DELAY, DB_NAME, LONGTERM_JSON_PATH, TABLE_NAME, get_workdir
-from data_models import AnAdvertisement, KijijiScraper_AnAdvertisement
+from config import CRAWL_DELAY, get_workdir
 from log import LOGGER
 from urllib.parse import urlparse
-from utils import collect_response, get_database_connection
 
 
 WORKDIR = get_workdir()
@@ -16,10 +16,10 @@ def advertisement_details(url: str) -> dict:
     This function takes in the link to an advertisement and returns the content
     of the page as JSON.
     """
-    response = collect_response(url)
+    response = utils.collect_response(url)
     if response.status_code >= 200 and response.status_code < 400:
         soup = BeautifulSoup(response.content, "lxml")
-        a_scraped_ad = KijijiScraper_AnAdvertisement(soup)
+        a_scraped_ad = ScrapeModels.KijijiScraper_AnAdvertisement(soup)
     else:
         LOGGER.error("Error during reading page!")
         return "data could not be read!"
@@ -36,7 +36,7 @@ def advertisement_details(url: str) -> dict:
 
 
 def get_page_data(url: str) -> list:
-    response = collect_response(url)
+    response = utils.collect_response(url)
     soup = BeautifulSoup(response.content, features="lxml")
     ad_data = []
     regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
@@ -63,13 +63,14 @@ def are_two_equal(a, b):
 def longterm_main(url_prefix: str, url_suffix: str):
     # select page number 1
     LOGGER.info("initiating Longterm Scrapes")
-    db_op = get_database_connection()
+    db_op = utils.get_database_connection()
     current_page_no = 1
     # LONG TERM RENTALS
     url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
 
     flag = True
     previous_page_id = []
+    operating_threads = []
     while flag:
         # LONG TERM RENTALS
         url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
@@ -86,11 +87,10 @@ def longterm_main(url_prefix: str, url_suffix: str):
 
         previous_page_id = current_page_ids.copy()
 
-        for ad_data in page_data:
-            an_advertisement = AnAdvertisement(ad_data)
-            if not db_op.is_connected():
-                db_op.reconnect(database=DB_NAME)
-            db_op.add_entry(advertisement=an_advertisement.get_json(),
-                            table_name=TABLE_NAME)
+        db_write_thread = threading.Thread(
+            target=utils.write_to_db,
+            args=(db_op, page_data)
+            )
+        db_write_thread.start()
         
         current_page_no += 1

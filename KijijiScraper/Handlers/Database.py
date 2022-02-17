@@ -1,4 +1,3 @@
-from venv import create
 import mysql.connector as ctx
 from log import create_logger
 
@@ -24,9 +23,9 @@ class DatabaseCtx:
             for val in advertisement.values()
             ])
         query = f"{insert_query} ({column_names}) VALUES ({values_for_column})"
-        self.logger.info(f"{table_name} - query - {query}")
         self._cursor.execute(query)
         self._connection.commit()
+        self.logger.info(f"{table_name} - query - {query}")
 
     def reconnect(self, database: str):
         if self._connection:

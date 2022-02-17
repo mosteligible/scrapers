@@ -7,7 +7,7 @@ import pandas as pd
 import json
 from config import LONGTERM_JSON_PATH, LONGTERM_STRUCTURED
 from constants import COLUMN_NAMES
-from data_models import AnAdvertisement
+from ScrapeModels import AnAdvertisement
 
 
 def read_file(filename: Path) -> dict:

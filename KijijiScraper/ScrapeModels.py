@@ -1,7 +1,6 @@
 import json
 from bs4 import BeautifulSoup
 from constants import COLUMN_NAMES, USER_AGENT
-from utils import collect_response
 
 
 class AnAdvertisement(object):
