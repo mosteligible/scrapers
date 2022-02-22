@@ -133,5 +133,4 @@ dmypy.json
 .vscode/
 longterm_json/
 longterm_structures/
-adextract_logs
-downloads_log
+log_store/

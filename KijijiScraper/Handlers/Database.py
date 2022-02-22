@@ -1,4 +1,5 @@
 import mysql.connector as ctx
+from config import LOG_DIR
 from log import create_logger
 
 
@@ -9,7 +10,7 @@ class DatabaseCtx:
         self._host = host
         self._connection = None
         self.reconnect(database=database)
-        self.logger = create_logger(logger_name="DOWNLOADS", file_name="downloads_log")
+        self.logger = create_logger(logger_name="DOWNLOADS", file_name=(LOG_DIR / "downloads_log"))
 
     def add_entry(self, advertisement: dict, table_name: str) -> None:
         insert_query = f"INSERT INTO {table_name}"

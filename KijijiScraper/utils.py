@@ -1,9 +1,11 @@
+from ast import parse
+from multiprocessing.sharedctypes import Value
 from typing import List
 import requests
 import mysql.connector
 from config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
 from Handlers.Database import DatabaseCtx
-from log import LOGGER
+from log import LOGGER, LOG_DB_ADD_ENTRY
 from urllib.parse import urlparse
 from ScrapeModels import AnAdvertisement
 
@@ -44,6 +46,15 @@ def collect_response(url: str) -> requests.models.Response:
     return response
 
 
+def validate_url(url: str) -> bool:
+    parsed_url = urlparse(url)
+    if parsed_url.netloc == "" or "://" not in url:
+        raise ValueError("Passed url should is invalid!")
+    elif "kijiji.ca" in parsed_url.netloc.lower():
+        return True
+    return False
+
+
 def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
     for ad_data in page_data:
         an_advertisement = AnAdvertisement(ad_data)
@@ -53,4 +64,6 @@ def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
             db_op.add_entry(advertisement=an_advertisement.get_json(),
                             table_name=TABLE_NAME)
         except mysql.connector.errors.IntegrityError:
-            LOGGER.error(f"adId: {ad_data['adId']} - Duplicate ad encountered")
+            LOG_DB_ADD_ENTRY.error(
+                f"adId: {ad_data['adId']} - Duplicate ad encountered"
+                )

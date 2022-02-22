@@ -52,7 +52,7 @@ def get_page_data(url: str) -> list:
         else:
             an_ad["adId"], an_ad["data"] = data_returned
         ad_data.append(an_ad)
-    LOGGER.info(f"Collected from {url}")
+    LOGGER.info(f"Completed from {url}")
     return ad_data
 
 
@@ -75,7 +75,6 @@ def longterm_main(url_prefix: str, url_suffix: str):
         # LONG TERM RENTALS
         url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
 
-        LOGGER.info(f"COLLECTING FROM: {url}")
         page_data = get_page_data(url)
 
         if page_data == "data could not be read!":

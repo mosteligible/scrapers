@@ -1,9 +1,13 @@
 import logging
 import logging.handlers
+from config import LOG_DIR
 
 
-LOG_FILE_NAME = "adextract_logs"
+LOG_FILE_NAME = LOG_DIR / "adextract_logs"
 LOGGER_NAME = "EXTRACT_LOG"
+
+DB_ADDENTRY_LOG_FILENAME = LOG_DIR / 'db_addentry_log'
+DB_ADDENTRY_LOGGER = "ADDENTRY_LOG"
 
 
 def create_logger(logger_name=LOGGER_NAME, file_name=LOG_FILE_NAME):
@@ -19,3 +23,7 @@ def create_logger(logger_name=LOGGER_NAME, file_name=LOG_FILE_NAME):
 
 
 LOGGER = create_logger()
+LOG_DB_ADD_ENTRY = create_logger(
+    logger_name=DB_ADDENTRY_LOGGER,
+    file_name=DB_ADDENTRY_LOG_FILENAME
+    )
