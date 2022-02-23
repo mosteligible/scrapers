@@ -17,7 +17,7 @@ def advertisement_details(url: str) -> dict:
     of the page as JSON.
     """
     response = utils.collect_response(url)
-    if response.status_code >= 200 and response.status_code < 400:
+    if response is not None:
         soup = BeautifulSoup(response.content, "lxml")
         a_scraped_ad = ScrapeModels.KijijiScraper_AnAdvertisement(soup)
     else:
@@ -56,40 +56,33 @@ def get_page_data(url: str) -> list:
     return ad_data
 
 
-def are_two_equal(a, b):
-    return a == b
-
-
 def longterm_main(url_prefix: str, url_suffix: str):
-    # select page number 1
+    # TODO: Validate URL
     LOGGER.info("initiating Longterm Scrapes")
     db_op = utils.get_database_connection()
-    current_page_no = 1
     # LONG TERM RENTALS
+    current_page_no = 1
     url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
 
     flag = True
     previous_page_id = []
     operating_threads = []
     while flag:
-        # LONG TERM RENTALS
-        url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
-
         page_data = get_page_data(url)
 
         if page_data == "data could not be read!":
             continue
 
         current_page_ids = [i["adId"] for i in page_data]
-        if are_two_equal(previous_page_id, current_page_ids):
+        if previous_page_id == current_page_ids:
             break
 
         previous_page_id = current_page_ids.copy()
 
         db_write_thread = threading.Thread(
-            target=utils.write_to_db,
-            args=(db_op, page_data)
-            )
+            target=utils.write_to_db, args=(db_op, page_data)
+        )
         db_write_thread.start()
-        
+        operating_threads.append(db_write_thread)
         current_page_no += 1
+        url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
