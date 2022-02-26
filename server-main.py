@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+import threading
 from DataModels.models import CrawlInitiator
+from KijijiScraper.main import run
+from fastapi import FastAPI
 
 
 app = FastAPI()
@@ -17,4 +19,9 @@ async def crawl(url):
 
 @app.post("/scrape")
 async def initiate(crawl_init: CrawlInitiator):
+    url = crawl_init.url
+    num_pages = crawl_init.num_pages
+    crawl_thread = threading.Thread(target=run, args=(url, num_pages))
+    crawl_thread.daemon = True
+    crawl_thread.start()
     return crawl_init

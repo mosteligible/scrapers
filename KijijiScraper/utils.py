@@ -1,13 +1,11 @@
-from ast import parse
-from multiprocessing.sharedctypes import Value
 from typing import List
 import requests
 import mysql.connector
-from config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
-from Handlers.Database import DatabaseCtx
-from log import LOGGER, LOG_DB_ADD_ENTRY
+from KijijiScraper.config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
+from KijijiScraper.Handlers.Database import DatabaseCtx
+from KijijiScraper.log import LOGGER, LOG_DB_ADD_ENTRY
 from urllib.parse import urlparse
-from ScrapeModels import AnAdvertisement
+from KijijiScraper.ScrapeModels import AnAdvertisement
 
 
 def format_string(url: str):
@@ -48,12 +46,13 @@ def collect_response(url: str) -> requests.models.Response:
 
 
 def validate_url(url: str) -> bool:
+    LOGGER.info(f"Validating url for provided url: {url}")
     parsed_url = urlparse(url)
-    if parsed_url.netloc == "" or "://" not in url:
-        LOGGER.error("Passed url should is invalid!")
+    if parsed_url.netloc == "" or parsed_url.scheme == "" or "://" not in url:
+        LOGGER.error("URL validation Failed, URL is invalid!")
     elif "kijiji.ca" not in parsed_url.netloc.lower():
-        LOGGER.error("Passed url should be kijiji's valid url!")
-    elif "kijiji.ca" in parsed_url.netloc.lower():
+        LOGGER.error(f"URL validation Failed, Passed url should be kijiji's valid url!")
+    elif "kijiji.ca" in parsed_url.netloc.lower() and len(parsed_url.path.split("/")) == 4:
         return True
     return False
 

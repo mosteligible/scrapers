@@ -1,10 +1,10 @@
-import utils
-import ScrapeModels
+import KijijiScraper.utils as utils
+import KijijiScraper.ScrapeModels as ScrapeModels
 import time
 import threading
 from bs4 import BeautifulSoup
-from config import CRAWL_DELAY, get_workdir
-from log import LOGGER
+from KijijiScraper.config import CRAWL_DELAY, get_workdir
+from KijijiScraper.log import LOGGER
 from urllib.parse import urlparse
 
 
@@ -56,7 +56,7 @@ def get_page_data(url: str) -> list:
     return ad_data
 
 
-def longterm_main(url_prefix: str, url_suffix: str):
+def longterm_main(url_prefix: str, url_suffix: str, num_pages: int = None):
     # TODO: Validate URL
     LOGGER.info("initiating Longterm Scrapes")
     db_op = utils.get_database_connection()
@@ -64,10 +64,11 @@ def longterm_main(url_prefix: str, url_suffix: str):
     current_page_no = 1
     url = f"{url_prefix}/page-{current_page_no}/{url_suffix}"
 
-    flag = True
     previous_page_id = []
     operating_threads = []
-    while flag:
+    if num_pages is None:
+        num_pages = float("inf")
+    while current_page_no <= num_pages:
         page_data = get_page_data(url)
 
         if page_data == "data could not be read!":

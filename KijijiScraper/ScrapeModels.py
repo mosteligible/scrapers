@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-from constants import COLUMN_NAMES, USER_AGENT
+from KijijiScraper.constants import COLUMN_NAMES, USER_AGENT
 
 
 class AnAdvertisement(object):
@@ -72,7 +72,9 @@ class AnAdvertisement(object):
                 for an_attribute in adattrs:
                     key = an_attribute["localeSpecificValues"]["en"]["label"]
                     if key in COLUMN_NAMES:
-                        self.__dict__[key] = an_attribute["localeSpecificValues"]["en"]["value"]
+                        self.__dict__[key] = an_attribute["localeSpecificValues"]["en"][
+                            "value"
+                        ]
             except KeyError:
                 pass  # key adAttributes was not found
         except:
@@ -89,10 +91,7 @@ class AnAdvertisement(object):
 
 class KijijiScraper_AnAdvertisement(object):
     def __init__(self, soup: BeautifulSoup):
-        self.__data = (
-            soup.find("div", {"id": "FesLoader"})
-            .contents[1]
-        )
+        self.__data = soup.find("div", {"id": "FesLoader"}).contents[1]
         self.__data = json.loads(str(self.__data)[31 + 14 : -10])
         self.__nan = float("nan")
 
