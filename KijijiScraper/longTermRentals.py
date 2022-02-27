@@ -3,12 +3,9 @@ import KijijiScraper.ScrapeModels as ScrapeModels
 import time
 import threading
 from bs4 import BeautifulSoup
-from KijijiScraper.config import CRAWL_DELAY, get_workdir
+from KijijiScraper.config import CRAWL_DELAY
 from KijijiScraper.log import LOGGER
 from urllib.parse import urlparse
-
-
-WORKDIR = get_workdir()
 
 
 def advertisement_details(url: str) -> dict:

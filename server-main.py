@@ -1,7 +1,7 @@
 import threading
 from DataModels.models import CrawlInitiator
 from KijijiScraper.main import run
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 
 
 app = FastAPI()
@@ -13,7 +13,8 @@ async def root():
 
 
 @app.get("/crawl/{url}")
-async def crawl(url):
+async def crawl(url, request: Request):
+    print(request.client.host)
     return {"something_to_do": url}
 
 
