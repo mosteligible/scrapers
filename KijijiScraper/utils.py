@@ -1,13 +1,11 @@
-from ast import parse
-from multiprocessing.sharedctypes import Value
 from typing import List
 import requests
 import mysql.connector
-from config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
-from Handlers.Database import DatabaseCtx
-from log import LOGGER, LOG_DB_ADD_ENTRY
+from KijijiScraper.config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
+from KijijiScraper.Handlers.Database import DatabaseCtx
+from KijijiScraper.log import LOGGER, LOG_DB_ADD_ENTRY
 from urllib.parse import urlparse
-from ScrapeModels import AnAdvertisement
+from KijijiScraper.ScrapeModels import AnAdvertisement
 
 
 def format_string(url: str):
@@ -17,16 +15,16 @@ def format_string(url: str):
     prefix = "/".join(path_splitted[:-1])
     suffix = path_splitted[-1]
     url_prefix = f"{parsed_url.scheme}://{parsed_url.netloc}{prefix}"
-    url_suffix = f"{suffix}?{parsed_url.query}"
+    if parsed_url.query != "":
+        url_suffix = f"{suffix}?{parsed_url.query}"
+    else:
+        url_suffix = f"{suffix}"
     return url_prefix, url_suffix
 
 
 def get_database_connection() -> DatabaseCtx:
     db_op = DatabaseCtx(
-        username=DB_USER,
-        password=DB_PASSWORD,
-        host=DB_HOST,
-        database=DB_NAME
+        username=DB_USER, password=DB_PASSWORD, host=DB_HOST, database=DB_NAME
     )
     return db_op
 
@@ -42,15 +40,19 @@ def collect_response(url: str) -> requests.models.Response:
             break
         except Exception as e:
             LOGGER.error(f"{e} on {retries+1} tries requesting url:: {url}")
+            response = None
             retries += 1
     return response
 
 
 def validate_url(url: str) -> bool:
+    LOGGER.info(f"Validating url for provided url: {url}")
     parsed_url = urlparse(url)
-    if parsed_url.netloc == "" or "://" not in url:
-        raise ValueError("Passed url should is invalid!")
-    elif "kijiji.ca" in parsed_url.netloc.lower():
+    if parsed_url.netloc == "" or parsed_url.scheme == "" or "://" not in url:
+        LOGGER.error("URL validation Failed, URL is invalid!")
+    elif "kijiji.ca" not in parsed_url.netloc.lower():
+        LOGGER.error(f"URL validation Failed, Passed url should be kijiji's valid url!")
+    elif "kijiji.ca" in parsed_url.netloc.lower() and len(parsed_url.path.split("/")) == 4:
         return True
     return False
 
@@ -61,9 +63,8 @@ def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
         if not db_op.is_connected():
             db_op.reconnect(database=DB_NAME)
         try:
-            db_op.add_entry(advertisement=an_advertisement.get_json(),
-                            table_name=TABLE_NAME)
+            db_op.add_entry(
+                advertisement=an_advertisement.get_json(), table_name=TABLE_NAME
+            )
         except mysql.connector.errors.IntegrityError:
-            LOG_DB_ADD_ENTRY.error(
-                f"adId: {ad_data['adId']} - Duplicate ad encountered"
-                )
+            LOG_DB_ADD_ENTRY.error(f"adId: {ad_data['adId']} - Duplicate ad encountered")

@@ -1,11 +1,16 @@
 import argparse
-from longTermRentals import longterm_main
-from utils import format_string
+
+from KijijiScraper.log import LOGGER
+from .longTermRentals import longterm_main
+from .utils import format_string, validate_url
 
 
-def run(url):
+def run(url: str, num_pages: int):
+    if not validate_url(url=url):
+        return None
     url_prefix, url_suffix = format_string(url)
-    longterm_main(url_prefix, url_suffix)
+    longterm_main(url_prefix, url_suffix, num_pages=num_pages)
+    LOGGER.info(f"Complete for url: {url}")
 
 
 if __name__ == "__main__":
