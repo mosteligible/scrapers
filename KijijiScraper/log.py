@@ -12,7 +12,7 @@ DB_ADDENTRY_LOGGER = "ADDENTRY_LOG"
 
 def create_logger(logger_name=LOGGER_NAME, file_name=LOG_FILE_NAME):
     log = logging.getLogger(logger_name)
-    log.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG)
     rotating_fhandler = logging.handlers.RotatingFileHandler(
         filename=file_name, maxBytes=1024 * 1024, backupCount=5
     )

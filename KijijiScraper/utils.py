@@ -68,3 +68,24 @@ def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
             )
         except mysql.connector.errors.IntegrityError:
             LOG_DB_ADD_ENTRY.error(f"adId: {ad_data['adId']} - Duplicate ad encountered")
+
+
+def get_page_data(url: str) -> list:
+    response = utils.collect_response(url)
+    soup = BeautifulSoup(response.content, features="lxml")
+    ad_data = []
+    regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
+    parsed_url = urlparse(url)
+    for a_posting in regular_postings:
+        time.sleep(CRAWL_DELAY)
+        href = a_posting.find("a", {"class": "title"}).get("href")
+        new_posting = parsed_url.scheme + "://" + parsed_url.netloc + href
+        an_ad = {}
+        data_returned = advertisement_details(new_posting)
+        if data_returned == "data could not be read!":
+            continue
+        else:
+            an_ad["adId"], an_ad["data"] = data_returned
+        ad_data.append(an_ad)
+    LOGGER.info(f"Completed from {url}")
+    return ad_data

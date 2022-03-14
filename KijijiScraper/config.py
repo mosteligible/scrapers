@@ -1,7 +1,6 @@
 import os
-from KijijiScraper.constants import USER_AGENTS, TIMESTAMP_FORMAT
+from KijijiScraper.constants import USER_AGENTS
 from dotenv import load_dotenv
-from datetime import datetime
 from pathlib import Path
 from random import choice
 
