@@ -1,9 +1,20 @@
+from bs4 import BeautifulSoup
 from typing import List
 import requests
+import time
 import mysql.connector
-from KijijiScraper.config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
+from KijijiScraper.config import (
+    HEADERS,
+    DB_USER,
+    DB_PASSWORD,
+    DB_HOST,
+    DB_NAME,
+    TABLE_NAME,
+    CRAWL_DELAY,
+)
 from KijijiScraper.Handlers.Database import DatabaseCtx
 from KijijiScraper.log import LOGGER, LOG_DB_ADD_ENTRY
+from KijijiScraper.longTermRentals import advertisement_details
 from urllib.parse import urlparse
 from KijijiScraper.ScrapeModels import AnAdvertisement
 
@@ -71,7 +82,7 @@ def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
 
 
 def get_page_data(url: str) -> list:
-    response = utils.collect_response(url)
+    response = collect_response(url)
     soup = BeautifulSoup(response.content, features="lxml")
     ad_data = []
     regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
