@@ -1,6 +1,6 @@
 import json
 from bs4 import BeautifulSoup
-from KijijiScraper.constants import COLUMN_NAMES, USER_AGENT
+from KijijiScraper.constants import COLUMN_NAMES
 
 
 class AnAdvertisement(object):

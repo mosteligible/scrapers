@@ -3,33 +3,9 @@ import KijijiScraper.ScrapeModels as ScrapeModels
 import time
 import threading
 from bs4 import BeautifulSoup
-from KijijiScraper.config import CRAWL_DELAY
+from KijijiScraper.config import Config
 from KijijiScraper.log import LOGGER
 from urllib.parse import urlparse
-
-
-def advertisement_details(url: str) -> dict:
-    """
-    This function takes in the link to an advertisement and returns the content
-    of the page as JSON.
-    """
-    response = utils.collect_response(url)
-    if response is not None:
-        soup = BeautifulSoup(response.content, "lxml")
-        a_scraped_ad = ScrapeModels.KijijiScraper_AnAdvertisement(soup)
-    else:
-        LOGGER.error("Error during reading page!")
-        return "data could not be read!"
-
-    advertisementData = {}
-    adId = a_scraped_ad.get_adId()
-    advertisementData["url"] = url
-    advertisementData["adType"] = a_scraped_ad.get_adType()
-    advertisementData["rent"] = a_scraped_ad.get_rent()
-    advertisementData["description"] = a_scraped_ad.get_description()
-    advertisementData["location"] = a_scraped_ad.get_location()
-    advertisementData["adAttributes"] = a_scraped_ad.get_adAttributes()
-    return adId, advertisementData
 
 
 def get_page_data(url: str) -> list:
@@ -39,11 +15,11 @@ def get_page_data(url: str) -> list:
     regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
     parsed_url = urlparse(url)
     for a_posting in regular_postings:
-        time.sleep(CRAWL_DELAY)
+        time.sleep(Config.CRAWL_DELAY)
         href = a_posting.find("a", {"class": "title"}).get("href")
         new_posting = parsed_url.scheme + "://" + parsed_url.netloc + href
         an_ad = {}
-        data_returned = advertisement_details(new_posting)
+        data_returned = utils.advertisement_details(new_posting)
         if data_returned == "data could not be read!":
             continue
         else:
