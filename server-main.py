@@ -13,12 +13,6 @@ async def root():
     return RedirectResponse(url="/url-list", status_code=301)
 
 
-@app.get("/crawl/{url}")
-async def crawl(url, request: Request):
-    print(request.client.host)
-    return {"something_to_do": url}
-
-
 @app.get("/url-list")
 async def get_all_urls(request: Request):
     ip_address = request.client.host
