@@ -4,7 +4,7 @@ import requests
 import time
 import mysql.connector
 from KijijiScraper.config import Config
-from KijijiScraper.Handlers.Database import DatabaseCtx
+from KijijiScraper.Handlers import DatabaseCtx
 from KijijiScraper.log import LOGGER, LOG_DB_ADD_ENTRY
 from urllib.parse import urlparse
 from KijijiScraper.ScrapeModels import AnAdvertisement, KijijiScraper_AnAdvertisement

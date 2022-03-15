@@ -1,5 +1,4 @@
 import KijijiScraper.utils as utils
-import KijijiScraper.ScrapeModels as ScrapeModels
 import time
 import threading
 from bs4 import BeautifulSoup
