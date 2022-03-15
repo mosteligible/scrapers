@@ -1,5 +1,5 @@
 import mysql.connector as ctx
-from KijijiScraper.config import LOG_DIR
+from KijijiScraper.config import Config
 from KijijiScraper.log import create_logger
 
 
@@ -11,7 +11,7 @@ class DatabaseCtx:
         self._connection = None
         self.reconnect(database=database)
         self.logger = create_logger(
-            logger_name="DOWNLOADS", file_name=(LOG_DIR / "downloads_log")
+            logger_name="DOWNLOADS", file_name=(Config.LOG_DIR / "downloads_log")
         )
 
     def add_entry(self, advertisement: dict, table_name: str) -> None:

@@ -1,11 +1,37 @@
+from bs4 import BeautifulSoup
 from typing import List
 import requests
+import time
 import mysql.connector
-from KijijiScraper.config import HEADERS, DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, TABLE_NAME
-from KijijiScraper.Handlers.Database import DatabaseCtx
+from KijijiScraper.config import Config
+from KijijiScraper.Handlers import DatabaseCtx
 from KijijiScraper.log import LOGGER, LOG_DB_ADD_ENTRY
 from urllib.parse import urlparse
-from KijijiScraper.ScrapeModels import AnAdvertisement
+from KijijiScraper.ScrapeModels import AnAdvertisement, KijijiScraper_AnAdvertisement
+
+
+def advertisement_details(url: str) -> dict:
+    """
+    This function takes in the link to an advertisement and returns the content
+    of the page as JSON.
+    """
+    response = collect_response(url)
+    if response is not None:
+        soup = BeautifulSoup(response.content, "lxml")
+        a_scraped_ad = KijijiScraper_AnAdvertisement(soup)
+    else:
+        LOGGER.error("Error during reading page!")
+        return "data could not be read!"
+
+    advertisementData = {}
+    adId = a_scraped_ad.get_adId()
+    advertisementData["url"] = url
+    advertisementData["adType"] = a_scraped_ad.get_adType()
+    advertisementData["rent"] = a_scraped_ad.get_rent()
+    advertisementData["description"] = a_scraped_ad.get_description()
+    advertisementData["location"] = a_scraped_ad.get_location()
+    advertisementData["adAttributes"] = a_scraped_ad.get_adAttributes()
+    return adId, advertisementData
 
 
 def format_string(url: str):
@@ -24,7 +50,10 @@ def format_string(url: str):
 
 def get_database_connection() -> DatabaseCtx:
     db_op = DatabaseCtx(
-        username=DB_USER, password=DB_PASSWORD, host=DB_HOST, database=DB_NAME
+        username=Config.DB_USER,
+        password=Config.DB_PASSWORD,
+        host=Config.DB_HOST,
+        database=Config.DB_NAME,
     )
     return db_op
 
@@ -34,7 +63,7 @@ def collect_response(url: str) -> requests.models.Response:
     response = None
     while retries < 3:
         try:
-            response = requests.get(url, HEADERS, timeout=10)
+            response = requests.get(url, Config.HEADERS, timeout=10)
             response.raise_for_status()
             LOGGER.info(f"<{response.status_code}> - {url}")
             break
@@ -61,10 +90,31 @@ def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
     for ad_data in page_data:
         an_advertisement = AnAdvertisement(ad_data)
         if not db_op.is_connected():
-            db_op.reconnect(database=DB_NAME)
+            db_op.reconnect(database=Config.DB_NAME)
         try:
             db_op.add_entry(
-                advertisement=an_advertisement.get_json(), table_name=TABLE_NAME
+                advertisement=an_advertisement.get_json(), table_name=Config.TABLE_NAME
             )
         except mysql.connector.errors.IntegrityError:
             LOG_DB_ADD_ENTRY.error(f"adId: {ad_data['adId']} - Duplicate ad encountered")
+
+
+def get_page_data(url: str) -> list:
+    response = collect_response(url)
+    soup = BeautifulSoup(response.content, features="lxml")
+    ad_data = []
+    regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
+    parsed_url = urlparse(url)
+    for a_posting in regular_postings:
+        time.sleep(Config.CRAWL_DELAY)
+        href = a_posting.find("a", {"class": "title"}).get("href")
+        new_posting = parsed_url.scheme + "://" + parsed_url.netloc + href
+        an_ad = {}
+        data_returned = advertisement_details(new_posting)
+        if data_returned == "data could not be read!":
+            continue
+        else:
+            an_ad["adId"], an_ad["data"] = data_returned
+        ad_data.append(an_ad)
+    LOGGER.info(f"Completed from {url}")
+    return ad_data
