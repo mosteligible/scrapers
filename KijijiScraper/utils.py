@@ -34,7 +34,7 @@ def advertisement_details(url: str) -> dict:
     return adId, advertisementData
 
 
-def format_string(url: str):
+def format_url(url: str):
     parsed_url = urlparse(url)
     path = parsed_url.path
     path_splitted = path.split("/")
