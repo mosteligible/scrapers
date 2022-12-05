@@ -33,7 +33,10 @@ class DatabaseCtx:
             self._cursor.close()
             self._connection.close()
         self._connection = ctx.connect(
-            user=self._username, password=self._password, host=self._host, database=database
+            user=self._username,
+            password=self._password,
+            host=self._host,
+            database=database,
         )
         self._cursor = self._connection.cursor(named_tuple=True)
 

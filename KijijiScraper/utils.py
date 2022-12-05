@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from typing import List
 import requests
-import time
 import mysql.connector
 from KijijiScraper.config import Config
 from KijijiScraper.Handlers import DatabaseCtx
@@ -17,7 +16,7 @@ def advertisement_details(url: str) -> dict:
     """
     response = collect_response(url)
     if response is not None:
-        soup = BeautifulSoup(response.content, "lxml")
+        soup = BeautifulSoup(response, "lxml")
         a_scraped_ad = KijijiScraper_AnAdvertisement(soup)
     else:
         LOGGER.error("Error during reading page!")
@@ -58,20 +57,19 @@ def get_database_connection() -> DatabaseCtx:
     return db_op
 
 
-def collect_response(url: str) -> requests.models.Response:
+def collect_response(url: str) -> str:
     retries = 0
-    response = None
+    response = ""
     while retries < 3:
         try:
-            response = requests.get(url, Config.HEADERS, timeout=10)
+            response = requests.get(url, Config.HEADERS, timeout=3)
             response.raise_for_status()
             LOGGER.info(f"<{response.status_code}> - {url}")
             break
         except Exception as e:
             LOGGER.error(f"{e} on {retries+1} tries requesting url:: {url}")
-            response = None
             retries += 1
-    return response
+    return response if response == "" else response.text
 
 
 def validate_url(url: str) -> bool:
@@ -97,24 +95,3 @@ def write_to_db(db_op: DatabaseCtx, page_data: List) -> None:
             )
         except mysql.connector.errors.IntegrityError:
             LOG_DB_ADD_ENTRY.error(f"adId: {ad_data['adId']} - Duplicate ad encountered")
-
-
-def get_page_data(url: str) -> list:
-    response = collect_response(url)
-    soup = BeautifulSoup(response.content, features="lxml")
-    ad_data = []
-    regular_postings = soup.find_all("div", {"class": "search-item regular-ad"})
-    parsed_url = urlparse(url)
-    for a_posting in regular_postings:
-        time.sleep(Config.CRAWL_DELAY)
-        href = a_posting.find("a", {"class": "title"}).get("href")
-        new_posting = parsed_url.scheme + "://" + parsed_url.netloc + href
-        an_ad = {}
-        data_returned = advertisement_details(new_posting)
-        if data_returned == "data could not be read!":
-            continue
-        else:
-            an_ad["adId"], an_ad["data"] = data_returned
-        ad_data.append(an_ad)
-    LOGGER.info(f"Completed from {url}")
-    return ad_data

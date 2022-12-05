@@ -1,0 +1,12 @@
+__pycache__
+*.py[cod]
+*$py.class
+
+.env
+.git
+venv
+
+.vscode
+longterm_json
+longterm_structures
+log_store
